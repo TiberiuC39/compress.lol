@@ -2,20 +2,21 @@ FROM node:20-alpine AS base
 WORKDIR /usr/src/app
 
 RUN apk add --no-cache libc6-compat
+RUN npm install -g pnpm
 
 FROM base AS deps
 
-COPY package.json package-lock.json* ./
-RUN npm ci
+COPY package.json ./
+RUN pnpm install
 
 FROM base AS builder
 WORKDIR /usr/src/app
 COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY . .
 
-RUN npm run prepare
+RUN pnpm run prepare
 
-RUN npm run build
+RUN pnpm run build
 
 FROM base AS runner
 WORKDIR /usr/src/app

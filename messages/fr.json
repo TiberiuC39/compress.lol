@@ -1,7 +1,7 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
 	"app_title": "compress.lol",
-	"app_subtitle": "\"Réduire la taille des fichiers, pas les rêves\" ⚡",
+	"app_subtitle": "\"Réduis la taille des fichiers, pas les rêves\" ⚡",
 	"loading": "Chargement...",
 	"upload_video": "Téléverser une vidéo",
 	"upload_description": "Sélectionnez un fichier vidéo à compresser",

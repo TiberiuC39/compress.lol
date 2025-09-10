@@ -60,18 +60,18 @@
 </script>
 
 <Select.Root type="single" value={currentLang} onValueChange={handleLanguageChange}>
-	<Select.Trigger class="h-8 flex items-center gap-2 w-20">
-		<Languages class="w-4 h-4" />
+	<Select.Trigger class="flex h-8 w-20 items-center gap-2">
+		<Languages class="h-4 w-4" />
 		{#if languages.find((lang) => lang.value === currentLang)?.flagSrc}
 			<img
 				src={languages.find((lang) => lang.value === currentLang)!.flagSrc}
 				alt=""
-				class="w-4 h-4 object-contain"
+				class="h-4 w-4 object-contain"
 				aria-hidden="true"
 			/>
 		{:else}
 			<span
-				class="inline-flex items-center justify-center w-4 h-4 leading-none text-base"
+				class="inline-flex h-4 w-4 items-center justify-center text-base leading-none"
 				style="font-variant-emoji: emoji;"
 			>
 				{languages.find((lang) => lang.value === currentLang)?.flag}
@@ -84,10 +84,10 @@
 				<Select.Item value={lang.value}>
 					<div class="flex items-center gap-2">
 						{#if lang.flagSrc}
-							<img src={lang.flagSrc} alt="" class="w-4 h-4 object-contain" aria-hidden="true" />
+							<img src={lang.flagSrc} alt="" class="h-4 w-4 object-contain" aria-hidden="true" />
 						{:else}
 							<span
-								class="inline-flex items-center justify-center w-4 h-4 leading-none text-base"
+								class="inline-flex h-4 w-4 items-center justify-center text-base leading-none"
 								style="font-variant-emoji: emoji;">{lang.flag}</span
 							>
 						{/if}

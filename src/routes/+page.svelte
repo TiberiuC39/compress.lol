@@ -110,13 +110,20 @@
 		const file = target.files?.[0];
 
 		if (file && file.type.startsWith('video/')) {
+			const maxSize = 2 * 1024 * 1024 * 1024;
+			if (file.size > maxSize) {
+				errorMessage = m.file_size_limit_error();
+				target.value = '';
+				return;
+			}
+
 			selectedFile = file;
 			originalSize = file.size;
 			errorMessage = '';
 			processedVideo = null;
 			getVideoMetadata(file);
 		} else {
-			errorMessage = 'Please select a valid video file.';
+			errorMessage = m.select_valid_video();
 		}
 	};
 

@@ -34,6 +34,8 @@
 	"how_motion_detection": "Smart motion detection - Moving scenes get extra quality, static ones compress more.",
 	"how_lightning_fast": "Lightning fast - Advanced encoding runs at 2-4x speed in your browser.",
 	"how_perfect_for": "Perfect for Discord, social media, or anywhere you need smaller video files!",
+	"file_size_limit_error": "File size exceeds the 2GB browser limit. Please select a smaller file.",
+	"select_valid_video": "Please select a valid video file.",
 	"footer_text": "Apache 2.0 Licensed | Built by <a class='text-primary underline' href='https://github.com/anhostfr'>Anhost</a> | Powered by FFmpeg.wasm | Source on <a class='text-primary underline' href='https://github.com/anhostfr/compress.lol'>GitHub</a>",
 	"footer_subtext": "Note: Compression happens entirely in your browser. No files are uploaded to any server."
 }

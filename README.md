@@ -95,6 +95,10 @@ The app uses FFmpeg.wasm for video processing:
 
 Requires WebAssembly and SharedArrayBuffer support.
 
+### File Size Limits
+
+- **Maximum file size**: 2GB (browser limitation)
+
 ---
 
 ## 🤝 Contributing

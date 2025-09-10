@@ -1,4 +1,4 @@
-# 🎬 Compress.lol – Lightning-Fast Video Compression
+# 🎬 Compress.lol – WebAssembly-Powered Video Compression
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![GitHub issues](https://img.shields.io/github/issues/anhostfr/compress.lol)](https://github.com/anhostfr/compress.lol/issues)

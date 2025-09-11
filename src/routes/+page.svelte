@@ -526,7 +526,7 @@
 
 						<div class="flex items-center justify-between">
 							<span class="text-sm font-medium">{m.size_reduction()}:</span>
-							<Badge variant="outline">-{compressionRatio.toFixed(1)}%</Badge>
+							<Badge variant="outline">{compressionRatio.toFixed(1)}%</Badge>
 						</div>
 
 						<div class="flex items-center justify-between">

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { FFmpeg } from '@ffmpeg/ffmpeg';
+	import { FFFSType, FFmpeg } from '@ffmpeg/ffmpeg';
 	// @ts-ignore
 	import type { LogEvent, ProgressEvent } from '@ffmpeg/ffmpeg/dist/esm/types';
 	import { fetchFile, toBlobURL } from '@ffmpeg/util';
@@ -248,7 +248,7 @@
 			await ffmpeg.createDir(inputDir);
 			
 			message = 'Mounting input file...';
-			await ffmpeg.mount('WORKERFS', { files: [selectedFile] }, inputDir);
+			await ffmpeg.mount(FFFSType.WORKERFS, { files: [selectedFile] }, inputDir);
 
 			const settings = calculateCompressionSettings(selectedTarget.value, videoMetadata);
 

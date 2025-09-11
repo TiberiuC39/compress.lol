@@ -56,6 +56,8 @@
 	let errorMessage = $state('');
 	let videoMetadata = $state<VideoMetadata | null>(null);
 	let message = $state('Initializing...');
+	let startTime = $state<number>(0);
+	let estimatedTimeRemaining = $state<number>(0);
 
 	const compressionTargets: CompressionTarget[] = [
 		{ label: '8 MB', value: 8 * 1024 * 1024, description: 'Ultra compression' },
@@ -86,6 +88,13 @@
 
 			ffmpeg.on('progress', ({ progress: prog }: ProgressEvent) => {
 				progress = Math.round(prog * 100);
+				if (startTime > 0 && progress > 5) {
+					const elapsed = (Date.now() - startTime) / 1000;
+					const rate = progress / elapsed;
+					if (rate > 0) {
+						estimatedTimeRemaining = Math.round((100 - progress) / rate);
+					}
+				}
 			});
 
 			await ffmpeg.load({
@@ -109,8 +118,8 @@
 		const target = event.target as HTMLInputElement;
 		const file = target.files?.[0];
 
-		if (file && file.type.startsWith('video/')) {
-			const maxSize = 2 * 1024 * 1024 * 1024;
+		if (file && (file.type.startsWith('video/') || file.type === 'video/x-matroska' || file.type === 'application/x-matroska' || file.name.match(/\.(mp4|avi|mov|wmv|flv|webm|mkv|m4v|3gp|ogv)$/i))) {
+			const maxSize = 5 * 1024 * 1024 * 1024;
 			if (file.size > maxSize) {
 				errorMessage = m.file_size_limit_error();
 				target.value = '';
@@ -231,10 +240,15 @@
 		isProcessing = true;
 		progress = 0;
 		errorMessage = '';
+		startTime = Date.now();
+		estimatedTimeRemaining = 0;
 
 		try {
-			message = 'Writing input file...';
-			await ffmpeg.writeFile('input.mp4', await fetchFile(selectedFile));
+			const inputDir = '/input';
+			await ffmpeg.createDir(inputDir);
+			
+			message = 'Mounting input file...';
+			await ffmpeg.mount('WORKERFS', { files: [selectedFile] }, inputDir);
 
 			const settings = calculateCompressionSettings(selectedTarget.value, videoMetadata);
 
@@ -242,7 +256,7 @@
 
 			const args = [
 				'-i',
-				'input.mp4',
+				`${inputDir}/${selectedFile.name}`,
 				'-c:v',
 				'libx264',
 				'-preset',
@@ -307,7 +321,8 @@
 			processedVideo = data;
 			compressedSize = data.length;
 
-			await ffmpeg.deleteFile('input.mp4');
+			await ffmpeg.unmount(inputDir);
+			await ffmpeg.deleteDir(inputDir);
 			await ffmpeg.deleteFile('output.mp4');
 
 			message = 'Compression completed successfully!';
@@ -318,6 +333,8 @@
 		} finally {
 			isProcessing = false;
 			progress = 0;
+			startTime = 0;
+			estimatedTimeRemaining = 0;
 		}
 	};
 
@@ -347,6 +364,13 @@
 		const mins = Math.floor(seconds / 60);
 		const secs = Math.floor(seconds % 60);
 		return `${mins}:${secs.toString().padStart(2, '0')}`;
+	};
+
+	const formatTimeRemaining = (seconds: number): string => {
+		if (seconds < 60) return `${seconds}s`;
+		const mins = Math.floor(seconds / 60);
+		const secs = seconds % 60;
+		return `${mins}m ${secs}s`;
 	};
 
 	const compressionRatio = $derived(
@@ -466,7 +490,12 @@
 					<div class="space-y-2">
 						<div class="flex justify-between text-sm">
 							<span>{m.progress()}</span>
-							<span>{progress}%</span>
+							<div class="flex items-center gap-2">
+								<span>{progress}%</span>
+								{#if estimatedTimeRemaining > 0}
+									<span class="text-muted-foreground">• ~{formatTimeRemaining(estimatedTimeRemaining)}</span>
+								{/if}
+							</div>
 						</div>
 						<Progress value={progress} class="w-full" />
 						<p class="text-center text-xs text-muted-foreground">{message}</p>

@@ -178,6 +178,21 @@
 		}
 	};
 
+	const calculateOptimalResolution = (originalWidth: number, originalHeight: number, maxWidth: number): string => {
+		if (originalWidth <= maxWidth) {
+			return `${originalWidth}x${originalHeight}`;
+		}
+		
+		const aspectRatio = originalWidth / originalHeight;
+		const newWidth = maxWidth;
+		const newHeight = Math.round(newWidth / aspectRatio);
+		
+		const evenWidth = newWidth % 2 === 0 ? newWidth : newWidth - 1;
+		const evenHeight = newHeight % 2 === 0 ? newHeight : newHeight - 1;
+		
+		return `${evenWidth}x${evenHeight}`;
+	};
+
 	const calculateCompressionSettings = (
 		targetSize: number,
 		metadata: VideoMetadata
@@ -198,19 +213,23 @@
 		const [width, height] = metadata.resolution.split('x').map(Number);
 
 		if (targetSize <= 8 * 1024 * 1024) {
-			if (width > (metadata.hasMotion ? 1024 : 854)) {
-				resolution = metadata.hasMotion ? '1024x576' : '854x480';
+			const maxWidth = metadata.hasMotion ? 1024 : 854;
+			if (width > maxWidth) {
+				resolution = calculateOptimalResolution(width, height, maxWidth);
 			}
 			crf = metadata.hasMotion ? 18 : 26;
 			if (targetFps > 24) targetFps = 24;
 		} else if (targetSize <= 25 * 1024 * 1024) {
-			if (width > (metadata.hasMotion ? 1440 : 1280)) {
-				resolution = metadata.hasMotion ? '1440x810' : '1280x720';
+			const maxWidth = metadata.hasMotion ? 1440 : 1280;
+			if (width > maxWidth) {
+				resolution = calculateOptimalResolution(width, height, maxWidth);
 			}
 			crf = metadata.hasMotion ? 16 : 24;
 			if (targetFps > 30) targetFps = 30;
 		} else if (targetSize <= 50 * 1024 * 1024) {
-			if (width > 1920) resolution = '1920x1080';
+			if (width > 1920) {
+				resolution = calculateOptimalResolution(width, height, 1920);
+			}
 			crf = metadata.hasMotion ? 14 : 22;
 			if (targetFps > 30) targetFps = 30;
 		} else {

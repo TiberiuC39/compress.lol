@@ -14,8 +14,8 @@
 	import * as Alert from '$lib/components/ui/alert/index.js';
 	import Loader from '@lucide/svelte/icons/loader-circle';
 	import * as m from '$lib/paraglide/messages.js';
-    import LanguageSelector from '$lib/components/language-selector.svelte';
-    import ThemeSelector from '$lib/components/theme-selector.svelte';
+    import LanguageSelector from '$lib/components/ui/selector/language-selector.svelte';
+    import ThemeSelector from '$lib/components/ui/selector/theme-selector.svelte';
 
 	interface CompressionTarget {
 		label: string;

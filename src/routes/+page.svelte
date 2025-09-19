@@ -294,7 +294,7 @@
 			await ffmpeg.mount("WORKERFS" as any, { files: [selectedFile] }, inputDir);
 
 			const settings = calculateCompressionSettings(selectedTarget.value, videoMetadata);
-			const threadCount = isChromiumByFeatures() ? getOptimalThreadCount() : 0;
+			const threadCount = isChromium ? getOptimalThreadCount() : 0;
 
 			message = 'Starting compression...';
 

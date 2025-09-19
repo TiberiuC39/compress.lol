@@ -14,8 +14,8 @@
 	import * as Alert from '$lib/components/ui/alert/index.js';
 	import Loader from '@lucide/svelte/icons/loader-circle';
 	import * as m from '$lib/paraglide/messages.js';
-    import LanguageSelector from '$lib/components/ui/selector/language-selector.svelte';
-    import ThemeSelector from '$lib/components/ui/selector/theme-selector.svelte';
+	import LanguageSelector from '$lib/components/ui/selector/language-selector.svelte';
+	import ThemeSelector from '$lib/components/ui/selector/theme-selector.svelte';
 
 	interface CompressionTarget {
 		label: string;
@@ -59,6 +59,29 @@
 	let message = $state('Initializing...');
 	let startTime = $state<number>(0);
 	let estimatedTimeRemaining = $state<number>(0);
+	let isChromium = $state(false);
+
+	const getOptimalThreadCount = (): number => {
+		try {
+			const cores = navigator.hardwareConcurrency || 2;
+			const isIsolated = (globalThis as any).crossOriginIsolated === true;
+			if (!isIsolated) return 1;
+			const baseline = Math.max(1, cores - 1);
+			const cap = 4;
+			return Math.min(baseline, cap);
+		} catch {
+			return 1;
+		}
+	};
+
+	const isChromiumByFeatures = (): boolean => {
+		try {
+			// The userAgentData property is available in Chromium browsers but is absent in Firefox/Safari browsers. If userAgentData is ever added to Firefox/Safari, this will need to be updated. However, it's been 4 years.
+			return !!(navigator as any).userAgentData;
+		} catch {
+			return false;
+		}
+	};
 
 	const compressionTargets: CompressionTarget[] = [
 		{ label: '8 MB', value: 8 * 1024 * 1024, description: 'Ultra compression' },
@@ -72,6 +95,7 @@
 
 	onMount(async (): Promise<void> => {
 		await loadFFmpeg();
+		isChromium = isChromiumByFeatures();
 	});
 
 	const loadFFmpeg = async (): Promise<void> => {
@@ -119,7 +143,13 @@
 		const target = event.target as HTMLInputElement;
 		const file = target.files?.[0];
 
-		if (file && (file.type.startsWith('video/') || file.type === 'video/x-matroska' || file.type === 'application/x-matroska' || file.name.match(/\.(mp4|avi|mov|wmv|flv|webm|mkv|m4v|3gp|ogv)$/i))) {
+		if (
+			file &&
+			(file.type.startsWith('video/') ||
+				file.type === 'video/x-matroska' ||
+				file.type === 'application/x-matroska' ||
+				file.name.match(/\.(mp4|avi|mov|wmv|flv|webm|mkv|m4v|3gp|ogv)$/i))
+		) {
 			const maxSize = 5 * 1024 * 1024 * 1024;
 			if (file.size > maxSize) {
 				errorMessage = m.file_size_limit_error();
@@ -179,18 +209,22 @@
 		}
 	};
 
-	const calculateOptimalResolution = (originalWidth: number, originalHeight: number, maxWidth: number): string => {
+	const calculateOptimalResolution = (
+		originalWidth: number,
+		originalHeight: number,
+		maxWidth: number
+	): string => {
 		if (originalWidth <= maxWidth) {
 			return `${originalWidth}x${originalHeight}`;
 		}
-		
+
 		const aspectRatio = originalWidth / originalHeight;
 		const newWidth = maxWidth;
 		const newHeight = Math.round(newWidth / aspectRatio);
-		
+
 		const evenWidth = newWidth % 2 === 0 ? newWidth : newWidth - 1;
 		const evenHeight = newHeight % 2 === 0 ? newHeight : newHeight - 1;
-		
+
 		return `${evenWidth}x${evenHeight}`;
 	};
 
@@ -266,11 +300,12 @@
 		try {
 			const inputDir = '/input';
 			await ffmpeg.createDir(inputDir);
-			
+
 			message = 'Mounting input file...';
 			await ffmpeg.mount('WORKERFS' as any, { files: [selectedFile] }, inputDir);
 
 			const settings = calculateCompressionSettings(selectedTarget.value, videoMetadata);
+			const threadCount = isChromium ? getOptimalThreadCount() : 0;
 
 			message = 'Starting compression...';
 
@@ -294,7 +329,7 @@
 				'-bf',
 				'0',
 				'-threads',
-				'0',
+				threadCount.toString(),
 				'-me_method',
 				'hex',
 				'-subq',
@@ -427,10 +462,10 @@
 </svelte:head>
 
 <div class="container mx-auto max-w-4xl p-6">
-    <div class="mb-2 flex items-center justify-center gap-2">
+	<div class="mb-2 flex items-center justify-center gap-2">
 		<h1 class="mr-4 mb-2 text-4xl font-bold">{m.app_title()}</h1>
-        <LanguageSelector />
-        <ThemeSelector />
+		<LanguageSelector />
+		<ThemeSelector />
 	</div>
 	<div class="mb-8 text-center">
 		<p class="text-muted-foreground">{m.app_subtitle()}</p>
@@ -499,6 +534,15 @@
 					</Select.Root>
 				</div>
 
+				{#if isChromium}
+					<Alert.Root class="mt-2">
+						<Alert.Description>
+							Chromium-based browser detected. Multi-threading is enabled but compression may be
+							slower than expected.
+						</Alert.Description>
+					</Alert.Root>
+				{/if}
+
 				<Button
 					onclick={compressVideo}
 					disabled={!selectedFile || !isLoaded || isProcessing}
@@ -514,7 +558,9 @@
 							<div class="flex items-center gap-2">
 								<span>{progress}%</span>
 								{#if estimatedTimeRemaining > 0}
-									<span class="text-muted-foreground">• ~{formatTimeRemaining(estimatedTimeRemaining)}</span>
+									<span class="text-muted-foreground"
+										>• ~{formatTimeRemaining(estimatedTimeRemaining)}</span
+									>
 								{/if}
 							</div>
 						</div>

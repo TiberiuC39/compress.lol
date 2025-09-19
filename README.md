@@ -20,6 +20,7 @@
 - 📱 **Responsive design** – works on desktop and mobile
 - 🌍 **Multilingual interface** with Paraglide JS
 - 🎨 **Modern UI** with TailwindCSS, Shadcn/ui components, and Catppuccin themes
+
 ---
 
 ## 🚀 Quick Start

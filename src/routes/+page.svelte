@@ -14,7 +14,8 @@
 	import * as Alert from '$lib/components/ui/alert/index.js';
 	import Loader from '@lucide/svelte/icons/loader-circle';
 	import * as m from '$lib/paraglide/messages.js';
-	import LanguageSelector from '$lib/components/language-selector.svelte';
+    import LanguageSelector from '$lib/components/ui/selector/language-selector.svelte';
+    import ThemeSelector from '$lib/components/ui/selector/theme-selector.svelte';
 
 	interface CompressionTarget {
 		label: string;
@@ -292,7 +293,7 @@
 			
 			message = 'Mounting input file...';
 			await ffmpeg.mount("WORKERFS" as any, { files: [selectedFile] }, inputDir);
-
+    
 			const settings = calculateCompressionSettings(selectedTarget.value, videoMetadata);
 			const threadCount = isChromium ? getOptimalThreadCount() : 0;
 
@@ -451,9 +452,10 @@
 </svelte:head>
 
 <div class="container mx-auto max-w-4xl p-6">
-	<div class="mb-2 flex items-center justify-center">
+    <div class="mb-2 flex items-center justify-center gap-2">
 		<h1 class="mr-4 mb-2 text-4xl font-bold">{m.app_title()}</h1>
-		<LanguageSelector />
+        <LanguageSelector />
+        <ThemeSelector />
 	</div>
 	<div class="mb-8 text-center">
 		<p class="text-muted-foreground">{m.app_subtitle()}</p>

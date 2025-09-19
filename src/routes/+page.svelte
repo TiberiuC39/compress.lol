@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { FFFSType, FFmpeg } from '@ffmpeg/ffmpeg';
+	import { FFmpeg } from '@ffmpeg/ffmpeg';
 	// @ts-ignore
 	import type { LogEvent, ProgressEvent } from '@ffmpeg/ffmpeg/dist/esm/types';
 	import { fetchFile, toBlobURL } from '@ffmpeg/util';
@@ -58,6 +58,29 @@
 	let message = $state('Initializing...');
 	let startTime = $state<number>(0);
 	let estimatedTimeRemaining = $state<number>(0);
+	let isChromium = $state(false);
+
+	const getOptimalThreadCount = (): number => {
+		try {
+			const cores = navigator.hardwareConcurrency || 2;
+			const isIsolated = (globalThis as any).crossOriginIsolated === true;
+			if (!isIsolated) return 1;
+			const baseline = Math.max(1, cores - 1);
+			const cap = 4;
+			return Math.min(baseline, cap);
+		} catch {
+			return 1;
+		}
+	};
+
+	const isChromiumByFeatures = (): boolean => {
+		try {
+			// The userAgentData property is available in Chromium browsers but is absent in Firefox/Safari browsers. If userAgentData is ever added to Firefox/Safari, this will need to be updated. However, it's been 4 years.
+			return !!(navigator as any).userAgentData;
+		} catch {
+			return false;
+		}
+	};
 
 	const compressionTargets: CompressionTarget[] = [
 		{ label: '8 MB', value: 8 * 1024 * 1024, description: 'Ultra compression' },
@@ -71,6 +94,7 @@
 
 	onMount(async (): Promise<void> => {
 		await loadFFmpeg();
+		isChromium = isChromiumByFeatures();
 	});
 
 	const loadFFmpeg = async (): Promise<void> => {
@@ -267,9 +291,10 @@
 			await ffmpeg.createDir(inputDir);
 			
 			message = 'Mounting input file...';
-			await ffmpeg.mount(FFFSType.WORKERFS, { files: [selectedFile] }, inputDir);
+			await ffmpeg.mount("WORKERFS" as any, { files: [selectedFile] }, inputDir);
 
 			const settings = calculateCompressionSettings(selectedTarget.value, videoMetadata);
+			const threadCount = isChromiumByFeatures() ? getOptimalThreadCount() : 0;
 
 			message = 'Starting compression...';
 
@@ -293,7 +318,7 @@
 				'-bf',
 				'0',
 				'-threads',
-				'0',
+				threadCount.toString(),
 				'-me_method',
 				'hex',
 				'-subq',
@@ -496,6 +521,14 @@
 						</Select.Content>
 					</Select.Root>
 				</div>
+
+				{#if isChromium}
+					<Alert.Root class="mt-2">
+						<Alert.Description>
+							Chromium-based browser detected. Multi-threading is enabled but compression may be slower than expected.
+						</Alert.Description>
+					</Alert.Root>
+				{/if}
 
 				<Button
 					onclick={compressVideo}

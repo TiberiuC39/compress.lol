@@ -19,8 +19,7 @@
 - 🔒 **100% client-side** – your videos never leave your device
 - 📱 **Responsive design** – works on desktop and mobile
 - 🌍 **Multilingual interface** with Paraglide JS
-- 🎨 **Modern UI** with TailwindCSS and Shadcn/ui components
-
+- 🎨 **Modern UI** with TailwindCSS, Shadcn/ui components, and Catppuccin themes
 ---
 
 ## 🚀 Quick Start
@@ -127,6 +126,7 @@ Apache 2.0 License – see [LICENSE](LICENSE) for details.
 - [Paraglide JS](https://inlang.com/m/gerre34r/library-inlang-paraglideJs) – Type-safe i18n
 - [TailwindCSS](https://tailwindcss.com/) – Utility-first CSS framework
 - [Shadcn/ui](https://ui.shadcn.com/) – Beautiful UI components
+- [Catppuccin](https://catppuccin.com/) – Lovely color palette and themes
 
 ---
 

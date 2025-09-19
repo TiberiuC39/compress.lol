@@ -178,7 +178,7 @@
 	--secondary-foreground: #eff1f5; /* base */
 	--muted: #e6e9ef; /* mantle */
 	--muted-foreground: #6c6f85; /* subtext0 */
-	--accent: #7287fd; /* lavender */
+	--accent: #ca9ee6; /* mauve */
 	--accent-foreground: #eff1f5; /* base */
 	--destructive: #d20f39; /* red */
 	--destructive-foreground: #eff1f5; /* base */
@@ -215,7 +215,7 @@
 	--secondary-foreground: #303446; /* base */
 	--muted: #292c3c; /* mantle */
 	--muted-foreground: #a5adce; /* subtext0 */
-	--accent: #babbf1; /* lavender */
+	--accent: #c6a0f6; /* mauve */
 	--accent-foreground: #303446; /* base */
 	--destructive: #e78284; /* red */
 	--destructive-foreground: #303446; /* base */
@@ -251,7 +251,7 @@
 	--secondary-foreground: #24273a; /* base */
 	--muted: #1e2030; /* mantle */
 	--muted-foreground: #a5adcb; /* subtext0 */
-	--accent: #b7bdf8; /* lavender */
+	--accent: #c6a0f6; /* mauve */
 	--accent-foreground: #24273a; /* base */
 	--destructive: #ed8796; /* red */
 	--destructive-foreground: #24273a; /* base */

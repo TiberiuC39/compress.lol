@@ -433,7 +433,7 @@
         );
 
         const isFileSmallerThanTarget = $derived(
-                !!selectedTarget && originalSize > 0 && originalSize <= selectedTarget.value
+                !!selectedTarget && originalSize > 0 && originalSize < selectedTarget.value
         );
 
 	const handleTargetChange = (value: string | undefined): void => {

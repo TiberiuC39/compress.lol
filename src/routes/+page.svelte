@@ -428,9 +428,13 @@
 		return `${mins}m ${secs}s`;
 	};
 
-	const compressionRatio = $derived(
-		compressedSize > 0 && originalSize > 0 ? (1 - compressedSize / originalSize) * 100 : 0
-	);
+        const compressionRatio = $derived(
+                compressedSize > 0 && originalSize > 0 ? (1 - compressedSize / originalSize) * 100 : 0
+        );
+
+        const isFileSmallerThanTarget = $derived(
+                !!selectedTarget && originalSize > 0 && originalSize <= selectedTarget.value
+        );
 
 	const handleTargetChange = (value: string | undefined): void => {
 		if (!value) return;
@@ -532,10 +536,16 @@
 							{/each}
 						</Select.Content>
 					</Select.Root>
-				</div>
+                                </div>
 
-				{#if isChromium}
-					<Alert.Root class="mt-2">
+                                {#if isFileSmallerThanTarget}
+                                        <Alert.Root class="border-yellow-500/70 bg-yellow-500/10 text-yellow-900 dark:text-yellow-100">
+                                                <Alert.Description>{m.small_video_warning()}</Alert.Description>
+                                        </Alert.Root>
+                                {/if}
+
+                                {#if isChromium}
+                                        <Alert.Root class="mt-2">
 						<Alert.Description>
 							Chromium-based browser detected. Multi-threading is enabled but compression may be
 							slower than expected.

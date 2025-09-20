@@ -537,8 +537,7 @@
 				{#if isChromium}
 					<Alert.Root class="mt-2">
 						<Alert.Description>
-							Chromium-based browser detected. Multi-threading is enabled but compression may be
-							slower than expected.
+							{m.chromium_warning()}
 						</Alert.Description>
 					</Alert.Root>
 				{/if}

@@ -767,10 +767,7 @@
 					</div>
 				{:else}
 					<div class="py-8 text-center text-muted-foreground">
-						{audioOnlyMode 
-							? "Upload a video and enable 'Audio Only Mode' to process audio without compression" 
-							: m.upload_compress_message()
-						}
+						{m.upload_compress_message()}
 					</div>
 				{/if}
 			</Card.Content>

@@ -16,6 +16,9 @@
 	import * as m from '$lib/paraglide/messages.js';
 	import LanguageSelector from '$lib/components/ui/selector/language-selector.svelte';
 	import ThemeSelector from '$lib/components/ui/selector/theme-selector.svelte';
+		import Settings from '@lucide/svelte/icons/settings';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 
 	interface CompressionTarget {
 		label: string;
@@ -60,6 +63,9 @@
 	let startTime = $state<number>(0);
 	let estimatedTimeRemaining = $state<number>(0);
 	let isChromium = $state(false);
+	let showAdvancedSettings = $state(false);
+	let muteSound = $state(false);
+	let audioOnlyMode = $state(false);
 
 	const getOptimalThreadCount = (): number => {
 		try {
@@ -304,6 +310,51 @@
 			message = 'Mounting input file...';
 			await ffmpeg.mount('WORKERFS' as any, { files: [selectedFile] }, inputDir);
 
+			// If audio-only mode, use the dedicated logic
+			if (audioOnlyMode) {
+				message = 'Processing audio only...';
+				
+				const args = [
+					'-i',
+					`${inputDir}/${selectedFile.name}`,
+					'-c:v',
+					'copy' // Copy video stream without re-encoding
+				];
+
+				// Handle audio based on muteSound setting
+				if (muteSound) {
+					args.push('-an'); // Remove audio completely
+				} else {
+					// Keep original audio
+					args.push('-c:a', 'copy');
+				}
+
+				args.push(
+					'-movflags',
+					'+faststart',
+					'-f',
+					'mp4',
+					'-y',
+					'output.mp4'
+				);
+
+				console.log('FFmpeg audio-only args:', args);
+
+				await ffmpeg.exec(args);
+
+				message = 'Reading processed video...';
+				const data = (await ffmpeg.readFile('output.mp4')) as Uint8Array;
+				processedVideo = data;
+				compressedSize = data.length;
+
+				await ffmpeg.unmount(inputDir);
+				await ffmpeg.deleteDir(inputDir);
+				await ffmpeg.deleteFile('output.mp4');
+
+				message = 'Audio processing completed successfully!';
+				return;
+			}
+
 			const settings = calculateCompressionSettings(selectedTarget.value, videoMetadata);
 			const threadCount = isChromium ? getOptimalThreadCount() : 0;
 
@@ -333,21 +384,33 @@
 				'-me_method',
 				'hex',
 				'-subq',
-				'3',
-				'-c:a',
-				'aac',
-				'-b:a',
-				settings.audioBitrate,
-				'-ac',
-				'2',
-				'-ar',
-				'48000',
+				'3'
+			];
+
+			// Add audio settings only if not muting sound
+			if (!muteSound) {
+				args.push(
+					'-c:a',
+					'aac',
+					'-b:a',
+					settings.audioBitrate,
+					'-ac',
+					'2',
+					'-ar',
+					'48000'
+				);
+			} else {
+				// Remove audio completely
+				args.push('-an');
+			}
+
+			args.push(
 				'-movflags',
 				'+faststart',
 				'-f',
 				'mp4',
 				'-y'
-			];
+			);
 
 			let videoFilters: string[] = [];
 
@@ -393,14 +456,30 @@
 		}
 	};
 
+	
 	const downloadVideo = (): void => {
 		if (!processedVideo) return;
 
+		console.log('Download button clicked, processedVideo size:', processedVideo.length);
+		console.log('Audio only mode:', audioOnlyMode, 'Mute sound:', muteSound);
+
+		// Always use video/mp4 as MIME type since we're outputting MP4 format
 		const blob = new Blob([new Uint8Array(processedVideo as Uint8Array)], { type: 'video/mp4' });
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
+		
+		let filename = '';
+		if (audioOnlyMode) {
+			const audioStatus = muteSound ? 'no_audio' : 'with_audio';
+			filename = `${audioStatus}_${selectedFile?.name || 'video.mp4'}`;
+		} else {
+			filename = `compressed_${selectedTarget?.label?.replace(' ', '') || 'unknown'}_${selectedFile?.name || 'video.mp4'}`;
+		}
+		
+		console.log('Generated filename:', filename);
+		
+		a.download = filename;
 		a.href = url;
-		a.download = `compressed_${selectedTarget.label.replace(' ', '')}_${selectedFile?.name || 'video.mp4'}`;
 		document.body.appendChild(a);
 		a.click();
 		document.body.removeChild(a);
@@ -536,9 +615,68 @@
 							{/each}
 						</Select.Content>
 					</Select.Root>
-                                </div>
+				</div>
 
-                                {#if isFileSmallerThanTarget}
+				<!-- Advanced Settings Section -->
+				<div class="border rounded-lg">
+					<button
+						onclick={() => (showAdvancedSettings = !showAdvancedSettings)}
+						class="w-full flex items-center justify-between p-3 text-left hover:bg-accent/50 transition-colors rounded-t-lg"
+					>
+						<div class="flex items-center gap-2">
+							<Settings class="h-4 w-4" />
+							<span class="text-sm font-medium">{m.advanced_settings()}</span>
+						</div>
+						<ChevronDown 
+							class="h-4 w-4 transition-transform duration-200 {showAdvancedSettings ? 'rotate-180' : ''}" 
+						/>
+					</button>
+					
+					<div 
+						class="overflow-hidden transition-all duration-300 ease-in-out"
+						style="max-height: {showAdvancedSettings ? '350px' : '0px'};"
+					>
+						<div class="border-t p-3 space-y-4">
+							<div class="flex items-start space-x-3">
+								<input
+									type="checkbox"
+									id="audio-only-mode"
+									bind:checked={audioOnlyMode}
+									class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary mt-0.5"
+								/>
+								<div class="grid gap-1">
+									<label
+										for="audio-only-mode"
+										class="text-sm font-medium leading-none cursor-pointer"
+									>
+										{m.audio_only_mode()}
+									</label>
+									<p class="text-xs text-muted-foreground">{m.audio_only_mode_description()}</p>
+								</div>
+							</div>
+							
+							<div class="flex items-start space-x-3">
+								<input
+									type="checkbox"
+									id="mute-sound"
+									bind:checked={muteSound}
+									class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary mt-0.5"
+								/>
+								<div class="grid gap-1">
+									<label
+										for="mute-sound"
+										class="text-sm font-medium leading-none cursor-pointer"
+									>
+										{m.mute_sound()}
+									</label>
+									<p class="text-xs text-muted-foreground">{m.mute_sound_description()}</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				{#if isFileSmallerThanTarget}
                                         <Alert.Root class="border-yellow-500/70 bg-yellow-500/10 text-yellow-900 dark:text-yellow-100">
                                                 <Alert.Description>{m.small_video_warning()}</Alert.Description>
                                         </Alert.Root>
@@ -557,7 +695,10 @@
 					disabled={!selectedFile || !isLoaded || isProcessing}
 					class="w-full"
 				>
-					{isProcessing ? m.compressing() : m.compress_video()}
+					{isProcessing 
+						? (audioOnlyMode ? m.processing_audio() : m.compressing())
+						: (audioOnlyMode ? m.process_audio_only() : m.compress_video())
+					}
 				</Button>
 
 				{#if isProcessing && progress > 0}
@@ -582,7 +723,7 @@
 
 		<Card.Root>
 			<Card.Header>
-				<Card.Title>{m.results()}</Card.Title>
+				<Card.Title>{audioOnlyMode ? m.audio_processing_results() : m.results()}</Card.Title>
 				<Card.Description>{m.results_description()}</Card.Description>
 			</Card.Header>
 			<Card.Content class="space-y-4">
@@ -626,7 +767,10 @@
 					</div>
 				{:else}
 					<div class="py-8 text-center text-muted-foreground">
-						{m.upload_compress_message()}
+						{audioOnlyMode 
+							? "Upload a video and enable 'Audio Only Mode' to process audio without compression" 
+							: m.upload_compress_message()
+						}
 					</div>
 				{/if}
 			</Card.Content>

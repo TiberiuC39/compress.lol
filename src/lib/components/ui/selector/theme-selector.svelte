@@ -5,7 +5,7 @@
 
 	const themes = ['latte', 'frappe', 'macchiato', 'mocha'] as const;
 	type Theme = (typeof themes)[number];
-	let selectedTheme = $state<Theme>('latte');
+	let selectedTheme = $state<Theme>('mocha');
 	let hydrated = $state(false);
 
 	const themeEmojis: Record<Theme, string> = {

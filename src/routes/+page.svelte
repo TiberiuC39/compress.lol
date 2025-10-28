@@ -90,10 +90,10 @@
 	};
 
 	const compressionTargets: CompressionTarget[] = [
-		{ label: '8 MB', value: 8 * 1024 * 1024, description: 'Ultra compression' },
+		{ label: '10 MB', value: 10 * 1024 * 1024, description: 'Ultra compression' },
 		{ label: '25 MB', value: 25 * 1024 * 1024, description: 'High compression' },
 		{ label: '50 MB', value: 50 * 1024 * 1024, description: 'Medium compression' },
-		{ label: '100 MB', value: 100 * 1024 * 1024, description: 'Low compression' }
+		{ label: '180 MB', value: 180 * 1024 * 1024, description: 'Low compression' }
 	];
 
 	let selectedTargetValue = $state('25 MB');
